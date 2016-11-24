@@ -41,6 +41,12 @@ public class MainActivity extends AppCompatActivity implements Callback {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        githubHttpService.cancelPost();
+    }
+
+    @Override
     public void onFailure(Call call, final IOException e) {
         e.printStackTrace();
         runOnUiThread(new Runnable() {

@@ -1,5 +1,6 @@
 package mjuarez.graphql_github;
 
+import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -13,6 +14,8 @@ public class GithubHttpService {
 
     private final OkHttpClient client;
 
+    private Call inflightCall;
+
     public GithubHttpService() {
         client = new OkHttpClient();
     }
@@ -25,7 +28,14 @@ public class GithubHttpService {
                 .post(body)
                 .build();
 
-        client.newCall(request).enqueue(responseCallback);
+        inflightCall = client.newCall(request);
+        inflightCall.enqueue(responseCallback);
+    }
+
+    public void cancelPost() {
+        if (inflightCall != null && !inflightCall.isCanceled()) {
+            inflightCall.cancel();
+        }
     }
 
 }
