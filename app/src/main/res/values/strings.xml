@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">graphql-github</string>
+    <string name="query_button_text">Query GraphQL</string>
+</resources>
