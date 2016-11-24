@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements Callback {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mainTextView.setText(e.toString());
+                mainTextView.setText("networkError=" + e.toString());
                 queryButton.setEnabled(true);
             }
         });
@@ -60,7 +60,11 @@ public class MainActivity extends AppCompatActivity implements Callback {
             @Override
             public void run() {
 //                mainTextView.setText(jsonResponse);
-                mainTextView.setText("login=" + objectResponse.data.viewer.login + "\nname=" + objectResponse.data.viewer.name);
+                if (objectResponse.errors != null && objectResponse.errors.size() > 0) {
+                    mainTextView.setText("graphQLError=" + objectResponse.errors.get(0).message);
+                } else {
+                    mainTextView.setText("login=" + objectResponse.data.viewer.login + "\nname=" + objectResponse.data.viewer.name);
+                }
                 queryButton.setEnabled(true);
             }
         });
