@@ -1,0 +1,13 @@
+query ViewerOrganizations {
+  viewer {
+    login
+    name
+    organizations(first: 3) {
+      edges {
+        org: node {
+          name
+        }
+      }
+    }
+  }
+}

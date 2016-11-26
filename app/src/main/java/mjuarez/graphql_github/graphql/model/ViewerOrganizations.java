@@ -1,5 +1,5 @@
 package mjuarez.graphql_github.graphql.model;
 
-public class ViewerQueryResponse {
+public class ViewerOrganizations {
     public User viewer;
 }

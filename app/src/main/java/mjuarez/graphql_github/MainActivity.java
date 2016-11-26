@@ -2,29 +2,24 @@ package mjuarez.graphql_github;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
 import java.io.IOException;
-import java.lang.reflect.Type;
+import java.util.List;
 
-import mjuarez.graphql_github.graphql.GraphQLResponse;
-import mjuarez.graphql_github.graphql.model.ViewerQueryResponse;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.Response;
+import mjuarez.graphql_github.graphql.GraphQLClient;
+import mjuarez.graphql_github.graphql.GraphQLError;
+import mjuarez.graphql_github.graphql.IGraphQLOperationResponseHandler;
+import mjuarez.graphql_github.graphql.api.ViewerOrganizationsQuery;
+import mjuarez.graphql_github.graphql.model.ViewerOrganizations;
 
-public class MainActivity extends AppCompatActivity implements Callback {
+public class MainActivity extends AppCompatActivity implements IGraphQLOperationResponseHandler<ViewerOrganizations> {
 
     private final static String TAG = MainActivity.class.getCanonicalName();
 
-    private final GithubHttpService githubHttpService = new GithubHttpService();
-    private final Gson gson = new Gson();
+    private final GraphQLClient graphQLClient = new GraphQLClient();
     private EditText mainTextView;
     private Button queryButton;
 
@@ -43,34 +38,37 @@ public class MainActivity extends AppCompatActivity implements Callback {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        githubHttpService.cancelPost();
+        // TODO: Cancel in-flight requests
     }
 
     @Override
-    public void onFailure(Call call, final IOException e) {
-        e.printStackTrace();
+    public void onResponse(final ViewerOrganizations data) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mainTextView.setText("networkError=" + e.toString());
+                mainTextView.setText("login=" + data.viewer.login + "\nname=" + data.viewer.name);
                 queryButton.setEnabled(true);
             }
         });
     }
 
     @Override
-    public void onResponse(Call call, final Response response) throws IOException {
-        final String jsonResponse = response.body().string();
-        final GraphQLResponse<ViewerQueryResponse> objectResponse = parseJson(jsonResponse);
+    public void onNetworkError(final IOException error) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-//                mainTextView.setText(jsonResponse);
-                if (objectResponse.errors != null && objectResponse.errors.size() > 0) {
-                    mainTextView.setText("graphQLError=" + objectResponse.errors.get(0).message);
-                } else {
-                    mainTextView.setText("login=" + objectResponse.data.viewer.login + "\nname=" + objectResponse.data.viewer.name);
-                }
+                mainTextView.setText("networkError=" + error.toString());
+                queryButton.setEnabled(true);
+            }
+        });
+    }
+
+    @Override
+    public void onGraphQLError(final List<GraphQLError> errors) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mainTextView.setText("graphQLError=" + errors.get(0).message);
                 queryButton.setEnabled(true);
             }
         });
@@ -78,12 +76,6 @@ public class MainActivity extends AppCompatActivity implements Callback {
 
     private void loadData() {
         queryButton.setEnabled(false);
-        githubHttpService.post("{ \"query\": \"query {viewer{login,name,organizations(first:3){edges{org:node{name}}}}}\" }", this);
-    }
-
-    private GraphQLResponse<ViewerQueryResponse> parseJson(String json) {
-        Log.v(TAG, "Parsing json response=" + json + " on Thread=" + Thread.currentThread().getName());
-        Type responseType = new TypeToken<GraphQLResponse<ViewerQueryResponse>>(){}.getType();
-        return gson.fromJson(json, responseType);
+        graphQLClient.fetch(new ViewerOrganizationsQuery(), this);
     }
 }
