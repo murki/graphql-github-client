@@ -1,27 +1,32 @@
 package mjuarez.graphql_github;
 
+import android.net.Uri;
+
 import okhttp3.Callback;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 
-public class GithubHttpService {
+public class HttpService {
 
-    private static final String GITHUB_GRAPHQL_ENDPOINT = "https://api.github.com/graphql";
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     private final OkHttpClient client;
+    private final Uri graphQLUri;
+    private final String authToken;
 
-    public GithubHttpService() {
+    public HttpService(Uri graphQLUri, String authToken) {
         client = new OkHttpClient();
+        this.graphQLUri = graphQLUri;
+        this.authToken = authToken;
     }
 
     public void post(String json, Callback responseCallback){
         RequestBody body = RequestBody.create(JSON, json);
         Request request = new Request.Builder()
-                .header("Authorization", "Bearer " + BuildConfig.GITHUB_OAUTH_BEARER)
-                .url(GITHUB_GRAPHQL_ENDPOINT)
+                .header("Authorization", "Bearer " + authToken)
+                .url(graphQLUri.toString())
                 .post(body)
                 .build();
 

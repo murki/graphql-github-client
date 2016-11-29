@@ -1,5 +1,6 @@
 package mjuarez.graphql_github.graphql;
 
+import android.net.Uri;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -7,7 +8,8 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.net.HttpRetryException;
 
-import mjuarez.graphql_github.GithubHttpService;
+import mjuarez.graphql_github.BuildConfig;
+import mjuarez.graphql_github.HttpService;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
@@ -15,11 +17,11 @@ import okhttp3.Response;
 public class GraphQLClient {
     private final static String TAG = GraphQLClient.class.getCanonicalName();
 
-    private final GithubHttpService githubHttpService = new GithubHttpService();
+    private final HttpService httpService = new HttpService(Uri.parse("https://api.github.com/graphql"), BuildConfig.GITHUB_OAUTH_BEARER);
     private final Gson gson = new Gson();
 
     public <D> void fetch(final IGraphQLQuery query, final IGraphQLOperationResponseHandler<D> handler) {
-        githubHttpService.post("{\"query\": \"" + query.getQueryDocument() + "\"}", new Callback() {
+        httpService.post("{\"query\": \"" + query.getQueryDocument() + "\"}", new Callback() {
             @Override
             public void onFailure(Call call, IOException error) {
                 handler.onNetworkError(error);
